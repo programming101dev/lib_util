@@ -97,6 +97,8 @@ static inline uint64_t bswap64(uint64_t x) {
 #  error "Unknown byte order"
 #endif
 
+    int p101_is_little_endian(void);
+
 #ifdef __cplusplus
 }
 #endif
