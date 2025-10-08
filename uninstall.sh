@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-NAME="p101_unix"
+NAME="p101_util"
 
 # Check if the directory exists before attempting to delete
 if [ -d "/usr/local/include/${NAME}" ]; then
