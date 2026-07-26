@@ -12,10 +12,20 @@ set(CMAKE_C_EXTENSIONS OFF)
 set(STANDARD_FLAGS
         -D_POSIX_C_SOURCE=200809L
         -D_XOPEN_SOURCE=700
-        -D_GNU_SOURCE
-        -D_DARWIN_C_SOURCE
-        -D__BSD_VISIBLE
         -Werror
+)
+
+set(DARWIN_STANDARD_FLAGS
+        -D_DARWIN_C_SOURCE
+)
+
+set(LINUX_STANDARD_FLAGS
+        -D_DEFAULT_SOURCE
+        -D_GNU_SOURCE
+)
+
+set(BSD_STANDARD_FLAGS
+        -D__BSD_VISIBLE
 )
 
 # Define library targets

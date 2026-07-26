@@ -30,13 +30,7 @@ extern "C"
 
 #define HAVE_BSWAP 0
 
-#if __has_builtin(__builtin_bswap16) && __has_builtin(__builtin_bswap32) && __has_builtin(__builtin_bswap64)
-    #undef HAVE_BSWAP
-    #define HAVE_BSWAP 1
-#elif defined(__clang__)
-    #undef HAVE_BSWAP
-    #define HAVE_BSWAP 1
-#elif defined(__GNUC__)
+#if (__has_builtin(__builtin_bswap16) && __has_builtin(__builtin_bswap32) && __has_builtin(__builtin_bswap64)) || defined(__clang__) || defined(__GNUC__)
     #undef HAVE_BSWAP
     #define HAVE_BSWAP 1
 #endif
