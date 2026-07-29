@@ -33,4 +33,5 @@ set(p101_util_HEADERS
 # Define linked libraries per library
 set(p101_util_LINK_LIBRARIES
         p101_env
+        p101_tool_event
 )
