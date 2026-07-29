@@ -10,23 +10,12 @@ set(CMAKE_C_EXTENSIONS OFF)
 
 # Common compiler flags
 set(STANDARD_FLAGS
-        -D_POSIX_C_SOURCE=200809L
-        -D_XOPEN_SOURCE=700
         -Werror
 )
 
-set(DARWIN_STANDARD_FLAGS
-        -D_DARWIN_C_SOURCE
-)
-
-set(LINUX_STANDARD_FLAGS
-        -D_DEFAULT_SOURCE
-        -D_GNU_SOURCE
-)
-
-set(BSD_STANDARD_FLAGS
-        -D__BSD_VISIBLE
-)
+set(DARWIN_STANDARD_FLAGS)
+set(LINUX_STANDARD_FLAGS)
+set(BSD_STANDARD_FLAGS)
 
 # Define library targets
 set(LIBRARY_TARGETS p101_util)
@@ -43,7 +32,5 @@ set(p101_util_HEADERS
 
 # Define linked libraries per library
 set(p101_util_LINK_LIBRARIES
-        p101_error
         p101_env
-        p101_c
 )

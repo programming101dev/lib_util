@@ -1,5 +1,5 @@
 /*
- * Copyright 2025-2025 D'Arcy Smith.
+ * Copyright 2025-2026 D'Arcy Smith.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,18 +15,217 @@
  */
 
 #include "p101_util/endian.h"
+#include <p101_env/env.h>
 
-/* Returns 1 if host is little-endian, 0 if big-endian */
-int p101_is_little_endian(void)
+enum
+{
+    ONE_BYTE_SHIFT   = 8,
+    THREE_BYTE_SHIFT = 24,
+    FIVE_BYTE_SHIFT  = 40,
+    SEVEN_BYTE_SHIFT = 56
+};
+
+static uint16_t bswap16_value(uint16_t value)
+{
+    return (uint16_t)((value >> ONE_BYTE_SHIFT) | (value << ONE_BYTE_SHIFT));
+}
+
+static uint32_t bswap32_value(uint32_t value)
+{
+    return ((value & UINT32_C(0x000000ff)) << THREE_BYTE_SHIFT) | ((value & UINT32_C(0x0000ff00)) << ONE_BYTE_SHIFT) | ((value & UINT32_C(0x00ff0000)) >> ONE_BYTE_SHIFT) | ((value & UINT32_C(0xff000000)) >> THREE_BYTE_SHIFT);
+}
+
+static uint64_t bswap64_value(uint64_t value)
+{
+    return ((value & UINT64_C(0x00000000000000ff)) << SEVEN_BYTE_SHIFT) | ((value & UINT64_C(0x000000000000ff00)) << FIVE_BYTE_SHIFT) | ((value & UINT64_C(0x0000000000ff0000)) << THREE_BYTE_SHIFT) | ((value & UINT64_C(0x00000000ff000000)) << ONE_BYTE_SHIFT) |
+           ((value & UINT64_C(0x000000ff00000000)) >> ONE_BYTE_SHIFT) | ((value & UINT64_C(0x0000ff0000000000)) >> THREE_BYTE_SHIFT) | ((value & UINT64_C(0x00ff000000000000)) >> FIVE_BYTE_SHIFT) | ((value & UINT64_C(0xff00000000000000)) >> SEVEN_BYTE_SHIFT);
+}
+
+static int is_little_endian_value(void)
 {
 #if defined(__BYTE_ORDER__) && defined(__ORDER_LITTLE_ENDIAN__) && defined(__ORDER_BIG_ENDIAN__)
-    /* compile-time constant path */
     return __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__;    // NOLINT(misc-redundant-expression)
 #else
-    /* portable runtime probe */
-    const uint16_t v = 0x0102;
-    const uint8_t *p = (const uint8_t *)&v;
+    const uint16_t value = UINT16_C(0x0102);
+    const uint8_t *bytes;
 
-    return p[0] == 0x02;
+    bytes = (const uint8_t *)&value;
+    return bytes[0] == UINT8_C(0x02);
 #endif
+}
+
+uint16_t p101_bswap16(const struct p101_env *env, uint16_t value)
+{
+    uint16_t ret_val;
+
+    P101_TRACE(env);
+    ret_val = bswap16_value(value);
+    P101_TRACE_EXIT(env);
+
+    return ret_val;
+}
+
+uint32_t p101_bswap32(const struct p101_env *env, uint32_t value)
+{
+    uint32_t ret_val;
+
+    P101_TRACE(env);
+    ret_val = bswap32_value(value);
+    P101_TRACE_EXIT(env);
+
+    return ret_val;
+}
+
+uint64_t p101_bswap64(const struct p101_env *env, uint64_t value)
+{
+    uint64_t ret_val;
+
+    P101_TRACE(env);
+    ret_val = bswap64_value(value);
+    P101_TRACE_EXIT(env);
+
+    return ret_val;
+}
+
+uint16_t p101_le16toh(const struct p101_env *env, uint16_t value)
+{
+    uint16_t ret_val;
+
+    P101_TRACE(env);
+    ret_val = is_little_endian_value() ? value : bswap16_value(value);
+    P101_TRACE_EXIT(env);
+
+    return ret_val;
+}
+
+uint32_t p101_le32toh(const struct p101_env *env, uint32_t value)
+{
+    uint32_t ret_val;
+
+    P101_TRACE(env);
+    ret_val = is_little_endian_value() ? value : bswap32_value(value);
+    P101_TRACE_EXIT(env);
+
+    return ret_val;
+}
+
+uint64_t p101_le64toh(const struct p101_env *env, uint64_t value)
+{
+    uint64_t ret_val;
+
+    P101_TRACE(env);
+    ret_val = is_little_endian_value() ? value : bswap64_value(value);
+    P101_TRACE_EXIT(env);
+
+    return ret_val;
+}
+
+uint16_t p101_be16toh(const struct p101_env *env, uint16_t value)
+{
+    uint16_t ret_val;
+
+    P101_TRACE(env);
+    ret_val = is_little_endian_value() ? bswap16_value(value) : value;
+    P101_TRACE_EXIT(env);
+
+    return ret_val;
+}
+
+uint32_t p101_be32toh(const struct p101_env *env, uint32_t value)
+{
+    uint32_t ret_val;
+
+    P101_TRACE(env);
+    ret_val = is_little_endian_value() ? bswap32_value(value) : value;
+    P101_TRACE_EXIT(env);
+
+    return ret_val;
+}
+
+uint64_t p101_be64toh(const struct p101_env *env, uint64_t value)
+{
+    uint64_t ret_val;
+
+    P101_TRACE(env);
+    ret_val = is_little_endian_value() ? bswap64_value(value) : value;
+    P101_TRACE_EXIT(env);
+
+    return ret_val;
+}
+
+uint16_t p101_htole16(const struct p101_env *env, uint16_t value)
+{
+    uint16_t ret_val;
+
+    P101_TRACE(env);
+    ret_val = is_little_endian_value() ? value : bswap16_value(value);
+    P101_TRACE_EXIT(env);
+
+    return ret_val;
+}
+
+uint32_t p101_htole32(const struct p101_env *env, uint32_t value)
+{
+    uint32_t ret_val;
+
+    P101_TRACE(env);
+    ret_val = is_little_endian_value() ? value : bswap32_value(value);
+    P101_TRACE_EXIT(env);
+
+    return ret_val;
+}
+
+uint64_t p101_htole64(const struct p101_env *env, uint64_t value)
+{
+    uint64_t ret_val;
+
+    P101_TRACE(env);
+    ret_val = is_little_endian_value() ? value : bswap64_value(value);
+    P101_TRACE_EXIT(env);
+
+    return ret_val;
+}
+
+uint16_t p101_htobe16(const struct p101_env *env, uint16_t value)
+{
+    uint16_t ret_val;
+
+    P101_TRACE(env);
+    ret_val = is_little_endian_value() ? bswap16_value(value) : value;
+    P101_TRACE_EXIT(env);
+
+    return ret_val;
+}
+
+uint32_t p101_htobe32(const struct p101_env *env, uint32_t value)
+{
+    uint32_t ret_val;
+
+    P101_TRACE(env);
+    ret_val = is_little_endian_value() ? bswap32_value(value) : value;
+    P101_TRACE_EXIT(env);
+
+    return ret_val;
+}
+
+uint64_t p101_htobe64(const struct p101_env *env, uint64_t value)
+{
+    uint64_t ret_val;
+
+    P101_TRACE(env);
+    ret_val = is_little_endian_value() ? bswap64_value(value) : value;
+    P101_TRACE_EXIT(env);
+
+    return ret_val;
+}
+
+int p101_is_little_endian(const struct p101_env *env)
+{
+    int ret_val;
+
+    P101_TRACE(env);
+    ret_val = is_little_endian_value();
+    P101_TRACE_EXIT(env);
+
+    return ret_val;
 }

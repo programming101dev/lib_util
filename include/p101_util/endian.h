@@ -1,8 +1,8 @@
-#ifndef LIBP101_UTIL_P101_ENDIAN_H
-#define LIBP101_UTIL_P101_ENDIAN_H
+#ifndef LIBP101_UTIL_ENDIAN_H
+#define LIBP101_UTIL_ENDIAN_H
 
 /*
- * Copyright 2025-2025 D'Arcy Smith.
+ * Copyright 2025-2026 D'Arcy Smith.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,74 +24,27 @@ extern "C"
 {
 #endif
 
-#ifndef __has_builtin
-    #define __has_builtin(x) 0
-#endif
+    struct p101_env;
 
-#define HAVE_BSWAP 0
+    uint16_t p101_bswap16(const struct p101_env *env, uint16_t value);
+    uint32_t p101_bswap32(const struct p101_env *env, uint32_t value);
+    uint64_t p101_bswap64(const struct p101_env *env, uint64_t value);
 
-#if (__has_builtin(__builtin_bswap16) && __has_builtin(__builtin_bswap32) && __has_builtin(__builtin_bswap64)) || defined(__clang__) || defined(__GNUC__)
-    #undef HAVE_BSWAP
-    #define HAVE_BSWAP 1
-#endif
+    uint16_t p101_le16toh(const struct p101_env *env, uint16_t value);
+    uint32_t p101_le32toh(const struct p101_env *env, uint32_t value);
+    uint64_t p101_le64toh(const struct p101_env *env, uint64_t value);
+    uint16_t p101_be16toh(const struct p101_env *env, uint16_t value);
+    uint32_t p101_be32toh(const struct p101_env *env, uint32_t value);
+    uint64_t p101_be64toh(const struct p101_env *env, uint64_t value);
 
-#if HAVE_BSWAP
-    #define bswap16 __builtin_bswap16
-    #define bswap32 __builtin_bswap32
-    #define bswap64 __builtin_bswap64
-#else
-static inline uint16_t bswap16(uint16_t x)
-{
-    return (uint16_t)((x >> 8) | (x << 8));
-}
+    uint16_t p101_htole16(const struct p101_env *env, uint16_t value);
+    uint32_t p101_htole32(const struct p101_env *env, uint32_t value);
+    uint64_t p101_htole64(const struct p101_env *env, uint64_t value);
+    uint16_t p101_htobe16(const struct p101_env *env, uint16_t value);
+    uint32_t p101_htobe32(const struct p101_env *env, uint32_t value);
+    uint64_t p101_htobe64(const struct p101_env *env, uint64_t value);
 
-static inline uint32_t bswap32(uint32_t x)
-{
-    return ((x & 0x000000FFu) << 24) | ((x & 0x0000FF00u) << 8) | ((x & 0x00FF0000u) >> 8) | ((x & 0xFF000000u) >> 24);
-}
-
-static inline uint64_t bswap64(uint64_t x)
-{
-    return ((x & 0x00000000000000FFull) << 56) | ((x & 0x000000000000FF00ull) << 40) | ((x & 0x0000000000FF0000ull) << 24) | ((x & 0x00000000FF000000ull) << 8) | ((x & 0x000000FF00000000ull) >> 8) | ((x & 0x0000FF0000000000ull) >> 24) |
-           ((x & 0x00FF000000000000ull) >> 40) | ((x & 0xFF00000000000000ull) >> 56);
-}
-#endif
-
-#if !defined(__BYTE_ORDER__) || !defined(__ORDER_LITTLE_ENDIAN__) || !defined(__ORDER_BIG_ENDIAN__)
-    #error "Compiler does not define __BYTE_ORDER__ macros"
-#endif
-
-#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
-    #define le16toh(x) ((uint16_t)(x))
-    #define le32toh(x) ((uint32_t)(x))
-    #define le64toh(x) ((uint64_t)(x))
-    #define be16toh(x) bswap16((uint16_t)(x))
-    #define be32toh(x) bswap32((uint32_t)(x))
-    #define be64toh(x) bswap64((uint64_t)(x))
-    #define htole16(x) ((uint16_t)(x))
-    #define htole32(x) ((uint32_t)(x))
-    #define htole64(x) ((uint64_t)(x))
-    #define htobe16(x) bswap16((uint16_t)(x))
-    #define htobe32(x) bswap32((uint32_t)(x))
-    #define htobe64(x) bswap64((uint64_t)(x))
-#elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
-    #define be16toh(x) ((uint16_t)(x))
-    #define be32toh(x) ((uint32_t)(x))
-    #define be64toh(x) ((uint64_t)(x))
-    #define le16toh(x) bswap16((uint16_t)(x))
-    #define le32toh(x) bswap32((uint32_t)(x))
-    #define le64toh(x) bswap64((uint64_t)(x))
-    #define htobe16(x) ((uint16_t)(x))
-    #define htobe32(x) ((uint32_t)(x))
-    #define htobe64(x) ((uint64_t)(x))
-    #define htole16(x) bswap16((uint16_t)(x))
-    #define htole32(x) bswap32((uint32_t)(x))
-    #define htole64(x) bswap64((uint64_t)(x))
-#else
-    #error "Unknown byte order"
-#endif
-
-    int p101_is_little_endian(void);
+    int p101_is_little_endian(const struct p101_env *env);
 
 #ifdef __cplusplus
 }

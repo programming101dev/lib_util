@@ -1,6 +1,22 @@
 # lib_util Repository Guide
 
-Welcome to the `lib_util` repository — utility functions, part of the Programming 101 C library collection. This guide will help you set up, build, and install the library.
+`lib_util` provides small, portable utilities that do not belong to the ISO C,
+POSIX, XSI, or common-Unix wrapper libraries. Its current public contract is
+the endian conversion family in `<p101_util/endian.h>`.
+
+## Contract and limits
+
+- **Admitted inputs:** fixed-width 16-, 32-, and 64-bit unsigned integers and
+  an optional `p101_env`.
+- **Outputs:** byte-swapped values, host/little/big-endian conversions, host
+  byte-order detection, and balanced p101 call events when an environment is
+  supplied.
+- **Error behavior:** these total integer operations do not use a
+  `p101_error`; every input value has a result.
+- **Portability:** the implementation uses the compiler byte-order constants
+  when available and a byte probe otherwise. It does not define or replace the
+  platform `bswap*`, `htobe*`, `htole*`, `be*toh`, or `le*toh` names.
+- **Blind spots:** direct native endian macros do not emit p101 events.
 
 ## **Table of Contents**
 
@@ -71,7 +87,27 @@ This compiles through the strict analysis pipeline: the clang-format check, clan
 ## **Testing**
 
 `./check.sh` is the one command to run before you submit: the format check, the strict build, the tests, and a short fuzz smoke run, with a single PASS/FAIL at the end.
-This library does not have a `test/` tree yet, so `./test.sh` reports that and exits; the rest of the gate still runs.
+The deterministic suite checks C and C++ public-header compatibility, both
+include orders with native endian headers, every conversion width, round trips,
+single argument evaluation, balanced tracing, and every possible 16-bit
+byte-swap input. Fuzzing is intentionally omitted: the fixed-width arithmetic
+has a finite, deterministic contract that unit tests cover more directly.
+
+## **Using the API**
+
+```c
+#include <p101_util/endian.h>
+
+uint32_t wire_value;
+uint32_t host_value = UINT32_C(0x12345678);
+
+wire_value = p101_htobe32(env, host_value);
+host_value = p101_be32toh(env, wire_value);
+```
+
+The public functions are `p101_bswap16/32/64`, `p101_htole16/32/64`,
+`p101_htobe16/32/64`, `p101_le16toh/32/64`, `p101_be16toh/32/64`, and
+`p101_is_little_endian`.
 
 ## **Installing**
 
