@@ -23,15 +23,20 @@ set(LIBRARY_TARGETS p101_util)
 # Define source files per library
 set(p101_util_SOURCES
         src/endian.c
+        src/tool_run.c
 )
 
 # Define header files per library
 set(p101_util_HEADERS
         include/p101_util/endian.h
+        include/p101_util/tool_run.h
 )
 
 # Define linked libraries per library
 set(p101_util_LINK_LIBRARIES
+        p101_error
         p101_env
         p101_tool_event
+        p101_c
+        p101_posix
 )

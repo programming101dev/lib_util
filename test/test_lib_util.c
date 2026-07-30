@@ -1,10 +1,12 @@
 #include <p101_env/env.h>
 #include <p101_error/error.h>
 #include <p101_util/endian.h>
+#include <p101_util/tool_run.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/wait.h>
 
 static int failures;
 
@@ -95,6 +97,29 @@ static void test_conversions(const struct p101_env *env)
     EXPECT(once == (uint16_t)(value16 + 1U));
 }
 
+static void test_tool_run(const struct p101_env *env, struct p101_error *err)
+{
+    struct p101_tool_run_options options        = {0};
+    char                        *success_argv[] = {"/usr/bin/true", NULL};
+    char                        *missing_argv[] = {"/definitely/missing/p101-tool", NULL};
+    int                          status;
+
+    options.stdout_path     = "/dev/null";
+    options.stderr_path     = "/dev/null";
+    options.diagnostic_name = "test tool";
+    options.output_mode     = 0600;
+
+    status = p101_tool_run_capture(env, err, success_argv, &options);
+    EXPECT(p101_error_has_no_error(err));
+    EXPECT(WIFEXITED(status));
+    EXPECT(WEXITSTATUS(status) == 0);
+
+    status = p101_tool_run_capture(env, err, missing_argv, &options);
+    EXPECT(p101_error_has_no_error(err));
+    EXPECT(WIFEXITED(status));
+    EXPECT(WEXITSTATUS(status) == 127);
+}
+
 int main(void)
 {
     struct event_counts counts = {0};
@@ -119,6 +144,7 @@ int main(void)
     p101_env_set_call_observer(env, NULL, NULL);
     EXPECT(counts.enters > 0);
     EXPECT(counts.enters == counts.exits);
+    test_tool_run(env, err);
 
     p101_env_destroy(env);
     p101_error_destroy(err);

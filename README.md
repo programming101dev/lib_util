@@ -1,8 +1,9 @@
 # lib_util Repository Guide
 
 `lib_util` provides small, portable utilities that do not belong to the ISO C,
-POSIX, XSI, or common-Unix wrapper libraries. Its current public contract is
-the endian conversion family in `<p101_util/endian.h>`.
+POSIX, XSI, or common-Unix wrapper libraries. It contains the endian conversion
+family in `<p101_util/endian.h>` and the subprocess capture mechanism in
+`<p101_util/tool_run.h>`.
 
 ## Contract and limits
 
@@ -17,6 +18,12 @@ the endian conversion family in `<p101_util/endian.h>`.
   when available and a byte probe otherwise. It does not define or replace the
   platform `bswap*`, `htobe*`, `htole*`, `be*toh`, or `le*toh` names.
 - **Blind spots:** direct native endian macros do not emit p101 events.
+
+`p101_tool_run_capture` is deliberately mechanism-only: it redirects a child
+process, optionally invokes a caller-owned child setup callback, executes the
+requested command, and returns the native wait status. It does not choose
+tools, clear environment variables, interpret exit codes, or judge findings;
+those policies remain in the calling tool.
 
 ## **Table of Contents**
 
