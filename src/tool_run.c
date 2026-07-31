@@ -1,10 +1,8 @@
 #include <fcntl.h>
 #include <p101_c/p101_stdio.h>
 #include <p101_c/p101_string.h>
-#include <p101_posix/p101_fcntl.h>
-#include <p101_posix/p101_stdlib.h>
-#include <p101_posix/p101_unistd.h>
-#include <p101_posix/sys/p101_wait.h>
+#include <p101_io/io.h>
+#include <p101_process/process.h>
 #include <p101_util/tool_run.h>
 #include <stdio.h>
 #include <unistd.h>

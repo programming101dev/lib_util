@@ -60,13 +60,13 @@ static int native_is_little_endian(void)
     return bytes[0] == UINT8_C(0x02);
 }
 
-static void test_byte_swaps(void)
+static void test_byte_swaps(const struct p101_env *env)
 {
     uint32_t value;
 
-    EXPECT(p101_bswap16(NULL, UINT16_C(0x1234)) == UINT16_C(0x3412));
-    EXPECT(p101_bswap32(NULL, UINT32_C(0x12345678)) == UINT32_C(0x78563412));
-    EXPECT(p101_bswap64(NULL, UINT64_C(0x0123456789abcdef)) == UINT64_C(0xefcdab8967452301));
+    EXPECT(p101_bswap16(env, UINT16_C(0x1234)) == UINT16_C(0x3412));
+    EXPECT(p101_bswap32(env, UINT32_C(0x12345678)) == UINT32_C(0x78563412));
+    EXPECT(p101_bswap64(env, UINT64_C(0x0123456789abcdef)) == UINT64_C(0xefcdab8967452301));
 
     for(value = 0; value <= UINT16_MAX; value++)
     {
@@ -125,6 +125,7 @@ int main(void)
     struct event_counts counts = {0};
     struct p101_error  *err;
     struct p101_env    *env;
+    struct p101_env    *observer_env;
 
     err = p101_error_create(false);
     if(err == NULL)
@@ -138,12 +139,22 @@ int main(void)
         return EXIT_FAILURE;
     }
 
-    test_byte_swaps();
-    p101_env_set_call_observer(env, observe_calls, &counts);
-    test_conversions(env);
-    p101_env_set_call_observer(env, NULL, NULL);
+    observer_env = p101_env_create(err, NULL);
+    if(observer_env == NULL)
+    {
+        p101_env_destroy(env);
+        p101_error_destroy(err);
+        return EXIT_FAILURE;
+    }
+
+    test_byte_swaps(env);
+    p101_env_set_call_observer(observer_env, observe_calls, &counts);
+    test_conversions(observer_env);
+    p101_env_set_call_observer(observer_env, NULL, NULL);
+    p101_env_destroy(observer_env);
     EXPECT(counts.enters > 0);
     EXPECT(counts.enters == counts.exits);
+    test_conversions(env);
     test_tool_run(env, err);
 
     p101_env_destroy(env);
