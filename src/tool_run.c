@@ -11,7 +11,9 @@
 #include <stdio.h>
 #include <unistd.h>
 
-extern char **environ;    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+#ifdef __APPLE__
+    #include <crt_externs.h>
+#endif
 
 enum
 {
@@ -22,6 +24,16 @@ enum
 
 static _Noreturn void exit_child_failure(const struct p101_env *env, struct p101_error *err, const char *diagnostic_name, const char *operation_name);
 static bool           tool_argv_reserve(const struct p101_env *env, struct p101_error *err, struct p101_tool_argv *arguments);
+static char         **tool_environment(void);
+
+static char **tool_environment(void)
+{
+#ifdef __APPLE__
+    return *_NSGetEnviron();
+#else
+    return environ;
+#endif
+}
 
 void p101_tool_argv_init(struct p101_tool_argv *arguments)
 {
@@ -251,7 +263,7 @@ bool p101_tool_read_pipe_open(const struct p101_env *env, struct p101_error *err
         p101_close(env, NULL, descriptors[1]);                                    // P101_ERROR_CONTRACT_ALLOW_NO_ERROR: cleanup preserves the file-action failure.
         return false;
     }
-    p101_posix_spawnp(env, err, &pid, argv[0], &file_actions, NULL, argv, environ);
+    p101_posix_spawnp(env, err, &pid, argv[0], &file_actions, NULL, argv, tool_environment());
     (void)p101_posix_spawn_file_actions_destroy(env, NULL, &file_actions);    // P101_ERROR_CONTRACT_ALLOW_NO_ERROR: the spawn result is authoritative.
     if(p101_error_has_error(err))
     {
