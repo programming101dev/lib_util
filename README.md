@@ -7,23 +7,30 @@ family in `<p101_util/endian.h>` and the subprocess capture mechanism in
 
 ## Contract and limits
 
-- **Admitted inputs:** fixed-width 16-, 32-, and 64-bit unsigned integers and
-  an optional `p101_env`.
+- **Admitted inputs:** fixed-width 16-, 32-, and 64-bit unsigned integers;
+  caller-supplied argument strings; executable argument vectors; and optional
+  `p101_env`/`p101_error` objects.
 - **Outputs:** byte-swapped values, host/little/big-endian conversions, host
-  byte-order detection, and balanced p101 call events when an environment is
-  supplied.
-- **Error behavior:** these total integer operations do not use a
-  `p101_error`; every input value has a result.
+  byte-order detection, owned argument vectors, child output streams, native
+  wait statuses, and balanced p101 call events when an environment is supplied.
+- **Error behavior:** the total integer operations do not use a `p101_error`;
+  every input value has a result. Allocation, pipe, fork, descriptor, stream,
+  exec, and wait failures in the subprocess helpers are raised through the
+  supplied error object.
 - **Portability:** the implementation uses the compiler byte-order constants
   when available and a byte probe otherwise. It does not define or replace the
   platform `bswap*`, `htobe*`, `htole*`, `be*toh`, or `le*toh` names.
 - **Blind spots:** direct native endian macros do not emit p101 events.
 
-`p101_tool_run_capture` is deliberately mechanism-only: it redirects a child
-process, optionally invokes a caller-owned child setup callback, executes the
-requested command, and returns the native wait status. It does not choose
-tools, clear environment variables, interpret exit codes, or judge findings;
-those policies remain in the calling tool.
+The subprocess API is deliberately mechanism-only. `p101_tool_argv_*` builds an
+owned, NULL-terminated argument vector, while `p101_tool_read_pipe_*` executes
+that vector directly and exposes the child's output as a readable stream.
+`p101_tool_run_capture` redirects a child process, optionally invokes a
+caller-owned child setup callback, executes the requested command, and returns
+the native wait status. None of these functions invoke a shell, choose tools,
+clear environment variables, interpret exit codes, or judge findings; those
+policies remain in the calling tool. Direct argv execution is the safety
+boundary that keeps paths containing spaces or shell metacharacters as data.
 
 ## **Table of Contents**
 

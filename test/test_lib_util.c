@@ -99,7 +99,11 @@ static void test_conversions(const struct p101_env *env)
 
 static void test_tool_run(const struct p101_env *env, struct p101_error *err)
 {
+    struct p101_tool_argv        arguments;
+    struct p101_tool_read_pipe   pipe_state;
     struct p101_tool_run_options options        = {0};
+    char                         line[64];
+    char                        *echo_argv[] = {"/bin/echo", "hello", NULL};
     char                        *success_argv[] = {"/usr/bin/true", NULL};
     char                        *missing_argv[] = {"/definitely/missing/p101-tool", NULL};
     int                          status;
@@ -118,6 +122,25 @@ static void test_tool_run(const struct p101_env *env, struct p101_error *err)
     EXPECT(p101_error_has_no_error(err));
     EXPECT(WIFEXITED(status));
     EXPECT(WEXITSTATUS(status) == 127);
+
+    p101_tool_argv_init(&arguments);
+    EXPECT(p101_tool_argv_append(env, err, &arguments, "/bin/echo"));
+    EXPECT(p101_tool_argv_append_prefixed(env, err, &arguments, "--name=", "p101"));
+    EXPECT(arguments.count == 2U);
+    EXPECT(strcmp(arguments.values[0], "/bin/echo") == 0);
+    EXPECT(strcmp(arguments.values[1], "--name=p101") == 0);
+    EXPECT(arguments.values[2] == NULL);
+    p101_tool_argv_destroy(env, &arguments);
+    EXPECT(arguments.values == NULL);
+    EXPECT(arguments.count == 0U);
+
+    EXPECT(p101_tool_read_pipe_open(env, err, echo_argv, "test pipe", true, &pipe_state));
+    EXPECT(fgets(line, sizeof(line), pipe_state.stream) != NULL);
+    EXPECT(strcmp(line, "hello\n") == 0);
+    status = p101_tool_read_pipe_close(env, err, &pipe_state);
+    EXPECT(p101_error_has_no_error(err));
+    EXPECT(WIFEXITED(status));
+    EXPECT(WEXITSTATUS(status) == 0);
 }
 
 int main(void)

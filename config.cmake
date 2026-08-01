@@ -39,5 +39,6 @@ set(p101_util_LINK_LIBRARIES
         p101_tool_event
         p101_c
         p101_io
+        p101_ipc
         p101_process
 )

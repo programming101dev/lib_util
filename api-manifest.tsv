@@ -17,3 +17,9 @@ p101_le32toh	libraries/lib_util/src/endian.c
 p101_le64toh	libraries/lib_util/src/endian.c
 p101_tool_run_capture	libraries/lib_util/src/tool_run.c
 p101_tool_run_redirect	libraries/lib_util/src/tool_run.c
+p101_tool_argv_init	libraries/lib_util/src/tool_run.c
+p101_tool_argv_append	libraries/lib_util/src/tool_run.c
+p101_tool_argv_append_prefixed	libraries/lib_util/src/tool_run.c
+p101_tool_argv_destroy	libraries/lib_util/src/tool_run.c
+p101_tool_read_pipe_open	libraries/lib_util/src/tool_run.c
+p101_tool_read_pipe_close	libraries/lib_util/src/tool_run.c
