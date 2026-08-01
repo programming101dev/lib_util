@@ -7,8 +7,11 @@
 #include <p101_ipc/ipc.h>
 #include <p101_process/process.h>
 #include <p101_util/tool_run.h>
+#include <spawn.h>
 #include <stdio.h>
 #include <unistd.h>
+
+extern char **environ;    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 enum
 {
@@ -208,10 +211,12 @@ done:
 
 bool p101_tool_read_pipe_open(const struct p101_env *env, struct p101_error *err, char *const argv[], const char *diagnostic_name, bool merge_stderr, struct p101_tool_read_pipe *pipe_state)
 {
-    int   descriptors[2];
-    pid_t pid;
+    int                        descriptors[2];
+    pid_t                      pid;
+    posix_spawn_file_actions_t file_actions;
 
     P101_TRACE_SCOPE(env);
+    (void)diagnostic_name;
     pipe_state->stream = NULL;
     pipe_state->pid    = -1;
     p101_pipe(env, err, descriptors);
@@ -219,33 +224,41 @@ bool p101_tool_read_pipe_open(const struct p101_env *env, struct p101_error *err
     {
         return false;
     }
-    pid = p101_fork(env, err);
+    p101_posix_spawn_file_actions_init(env, err, &file_actions);
     if(p101_error_has_error(err))
     {
         p101_close(env, NULL, descriptors[0]);    // P101_ERROR_CONTRACT_ALLOW_NO_ERROR: cleanup preserves the fork failure.
         p101_close(env, NULL, descriptors[1]);    // P101_ERROR_CONTRACT_ALLOW_NO_ERROR: cleanup preserves the fork failure.
         return false;
     }
-    if(pid == 0)
+    p101_posix_spawn_file_actions_addclose(env, err, &file_actions, descriptors[0]);
+    if(descriptors[1] != STDOUT_FILENO)
     {
-        p101_close(env, err, descriptors[0]);
-        p101_dup2(env, err, descriptors[1], STDOUT_FILENO);
-        if(merge_stderr)
-        {
-            p101_dup2(env, err, descriptors[1], STDERR_FILENO);
-        }
-        if(descriptors[1] != STDOUT_FILENO && (!merge_stderr || descriptors[1] != STDERR_FILENO))
-        {
-            p101_close(env, err, descriptors[1]);
-        }
-        if(p101_error_has_error(err))
-        {
-            exit_child_failure(env, err, diagnostic_name, "pipe setup");
-        }
-        p101_execvp(env, err, argv[0], argv);
-        exit_child_failure(env, err, diagnostic_name, "exec");
+        p101_posix_spawn_file_actions_adddup2(env, err, &file_actions, descriptors[1], STDOUT_FILENO);
     }
-
+    if(merge_stderr && descriptors[1] != STDERR_FILENO)
+    {
+        p101_posix_spawn_file_actions_adddup2(env, err, &file_actions, descriptors[1], STDERR_FILENO);
+    }
+    if(descriptors[1] != STDOUT_FILENO && (!merge_stderr || descriptors[1] != STDERR_FILENO))
+    {
+        p101_posix_spawn_file_actions_addclose(env, err, &file_actions, descriptors[1]);
+    }
+    if(p101_error_has_error(err))
+    {
+        (void)p101_posix_spawn_file_actions_destroy(env, NULL, &file_actions);    // P101_ERROR_CONTRACT_ALLOW_NO_ERROR: cleanup preserves the file-action failure.
+        p101_close(env, NULL, descriptors[0]);                                    // P101_ERROR_CONTRACT_ALLOW_NO_ERROR: cleanup preserves the close failure.
+        p101_close(env, NULL, descriptors[1]);                                    // P101_ERROR_CONTRACT_ALLOW_NO_ERROR: cleanup preserves the file-action failure.
+        return false;
+    }
+    p101_posix_spawnp(env, err, &pid, argv[0], &file_actions, NULL, argv, environ);
+    (void)p101_posix_spawn_file_actions_destroy(env, NULL, &file_actions);    // P101_ERROR_CONTRACT_ALLOW_NO_ERROR: the spawn result is authoritative.
+    if(p101_error_has_error(err))
+    {
+        p101_close(env, NULL, descriptors[0]);    // P101_ERROR_CONTRACT_ALLOW_NO_ERROR: cleanup preserves the spawn failure.
+        p101_close(env, NULL, descriptors[1]);    // P101_ERROR_CONTRACT_ALLOW_NO_ERROR: cleanup preserves the spawn failure.
+        return false;
+    }
     p101_close(env, err, descriptors[1]);
     if(p101_error_has_error(err))
     {
