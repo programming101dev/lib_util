@@ -222,8 +222,8 @@ bool p101_tool_read_pipe_open(const struct p101_env *env, struct p101_error *err
     pid = p101_fork(env, err);
     if(p101_error_has_error(err))
     {
-        p101_close(env, NULL, descriptors[0]);
-        p101_close(env, NULL, descriptors[1]);
+        p101_close(env, NULL, descriptors[0]);    // P101_ERROR_CONTRACT_ALLOW_NO_ERROR: cleanup preserves the fork failure.
+        p101_close(env, NULL, descriptors[1]);    // P101_ERROR_CONTRACT_ALLOW_NO_ERROR: cleanup preserves the fork failure.
         return false;
     }
     if(pid == 0)
@@ -249,15 +249,15 @@ bool p101_tool_read_pipe_open(const struct p101_env *env, struct p101_error *err
     p101_close(env, err, descriptors[1]);
     if(p101_error_has_error(err))
     {
-        p101_close(env, NULL, descriptors[0]);
-        (void)p101_waitpid(env, NULL, pid, NULL, 0);
+        p101_close(env, NULL, descriptors[0]);          // P101_ERROR_CONTRACT_ALLOW_NO_ERROR: cleanup preserves the close failure.
+        (void)p101_waitpid(env, NULL, pid, NULL, 0);    // P101_ERROR_CONTRACT_ALLOW_NO_ERROR: cleanup preserves the close failure.
         return false;
     }
     pipe_state->stream = p101_fdopen(env, err, descriptors[0], "r");
     if(pipe_state->stream == NULL)
     {
-        p101_close(env, NULL, descriptors[0]);
-        (void)p101_waitpid(env, NULL, pid, NULL, 0);
+        p101_close(env, NULL, descriptors[0]);          // P101_ERROR_CONTRACT_ALLOW_NO_ERROR: cleanup preserves the fdopen failure.
+        (void)p101_waitpid(env, NULL, pid, NULL, 0);    // P101_ERROR_CONTRACT_ALLOW_NO_ERROR: cleanup preserves the fdopen failure.
         return false;
     }
     pipe_state->pid = pid;
