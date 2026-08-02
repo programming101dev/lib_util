@@ -15,6 +15,10 @@
     #include <crt_externs.h>
 #endif
 
+#ifdef __FreeBSD__
+extern char **environ;    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+#endif
+
 enum
 {
     P101_TOOL_RUN_EXEC_FAILURE = 127,
