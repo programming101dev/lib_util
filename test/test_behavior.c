@@ -41,12 +41,15 @@ int main(void)
         p101_tool_run_redirect(env, err, stdout_path, stderr_path, 0600);
         if(p101_error_has_error(err))
         {
+            p101_env_complete_event_streams(env);
             _exit(2);
         }
         if(write(STDOUT_FILENO, "out", 3) != 3 || write(STDERR_FILENO, "err", 3) != 3)
         {
+            p101_env_complete_event_streams(env);
             _exit(3);
         }
+        p101_env_complete_event_streams(env);
         _exit(0);
     }
     if(child < 0 || waitpid(child, &status, 0) != child || !WIFEXITED(status) || WEXITSTATUS(status) != 0)
