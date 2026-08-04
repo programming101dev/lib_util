@@ -55,9 +55,14 @@ if(P101_PUBLIC_LINK_DIRS_LIST)
     find_library(P101_UTIL_LIBRARY NAMES p101_util PATHS ${P101_PUBLIC_LINK_DIRS_LIST} NO_DEFAULT_PATH)
     find_library(P101_ENV_LIBRARY NAMES p101_env PATHS ${P101_PUBLIC_LINK_DIRS_LIST} NO_DEFAULT_PATH)
     find_library(P101_ERROR_LIBRARY NAMES p101_error PATHS ${P101_PUBLIC_LINK_DIRS_LIST} NO_DEFAULT_PATH)
-else()
+endif()
+if(NOT P101_UTIL_LIBRARY)
     find_library(P101_UTIL_LIBRARY NAMES p101_util)
+endif()
+if(NOT P101_ENV_LIBRARY)
     find_library(P101_ENV_LIBRARY NAMES p101_env)
+endif()
+if(NOT P101_ERROR_LIBRARY)
     find_library(P101_ERROR_LIBRARY NAMES p101_error)
 endif()
 if(NOT P101_UTIL_LIBRARY OR NOT P101_ENV_LIBRARY OR NOT P101_ERROR_LIBRARY)
@@ -71,6 +76,7 @@ set(P101_C_TESTS
         test_lib_util
         test_native_first
         test_p101_first
+        test_fault_wrappers
 )
 
 foreach(target IN LISTS P101_C_TESTS)

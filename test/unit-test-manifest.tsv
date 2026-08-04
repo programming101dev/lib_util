@@ -1,4 +1,10 @@
 function	test_kind	test_source
+p101_tool_argv_append	fault	test/test_fault_wrappers.c
+p101_tool_argv_append_prefixed	fault	test/test_fault_wrappers.c
+p101_tool_read_pipe_close	fault	test/test_fault_wrappers.c
+p101_tool_read_pipe_open	fault	test/test_fault_wrappers.c
+p101_tool_run_capture	fault	test/test_fault_wrappers.c
+p101_tool_run_redirect	fault	test/test_fault_wrappers.c
 p101_be16toh	behavior-existing	test/test_lib_util.c
 p101_be32toh	behavior-existing	test/test_lib_util.c
 p101_be64toh	behavior-existing	test/test_lib_util.c
@@ -15,11 +21,5 @@ p101_is_little_endian	behavior-existing	test/test_lib_util.c
 p101_le16toh	behavior-existing	test/test_lib_util.c
 p101_le32toh	behavior-existing	test/test_lib_util.c
 p101_le64toh	behavior-existing	test/test_lib_util.c
-p101_tool_argv_append	behavior-existing	test/test_lib_util.c
-p101_tool_argv_append_prefixed	behavior-existing	test/test_lib_util.c
 p101_tool_argv_destroy	behavior-existing	test/test_lib_util.c
 p101_tool_argv_init	behavior-existing	test/test_lib_util.c
-p101_tool_read_pipe_close	behavior-existing	test/test_lib_util.c
-p101_tool_read_pipe_open	behavior-existing	test/test_lib_util.c
-p101_tool_run_capture	behavior-existing	test/test_lib_util.c
-p101_tool_run_redirect	behavior	test/test_behavior.c
