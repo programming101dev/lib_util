@@ -101,9 +101,9 @@ static void test_tool_run(const struct p101_env *env, struct p101_error *err)
 {
     struct p101_tool_argv        arguments;
     struct p101_tool_read_pipe   pipe_state;
-    struct p101_tool_run_options options        = {0};
+    struct p101_tool_run_options options = {0};
     char                         line[64];
-    char                        *echo_argv[] = {"/bin/echo", "hello", NULL};
+    char                        *echo_argv[]    = {"/bin/echo", "hello", NULL};
     char                        *success_argv[] = {"/usr/bin/true", NULL};
     char                        *missing_argv[] = {"/definitely/missing/p101-tool", NULL};
     int                          status;
