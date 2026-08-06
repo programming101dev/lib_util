@@ -27,17 +27,23 @@ enum
     P101_TOOL_ARGV_INITIAL     = 8
 };
 
-static _Noreturn void p101_tool_run_child_main(const struct p101_env *env, struct p101_error *err, char *const argv[], const struct p101_tool_run_options *options, const char *diagnostic_name);
+static _Noreturn void p101_tool_run_child_main(const struct p101_env *env, struct p101_error *err, char *const argv[], const struct p101_tool_run_options *options, const char *diagnostic_name) P101_ATTR_SEMANTIC_ROLE("p101:termination-adapter");
 static bool           tool_argv_reserve(const struct p101_env *env, struct p101_error *err, struct p101_tool_argv *arguments);
 static char         **tool_environment(void);
 
 static char **tool_environment(void)
 {
+    char **environment;
+
 #ifdef __APPLE__
-    return *_NSGetEnviron();
+    char ***environment_address;
+
+    environment_address = _NSGetEnviron();
+    environment         = *environment_address;
 #else
-    return environ;
+    environment = environ;
 #endif
+    return environment;
 }
 
 void p101_tool_argv_init(struct p101_tool_argv *arguments)
@@ -52,6 +58,7 @@ static bool tool_argv_reserve(const struct p101_env *env, struct p101_error *err
     bool   p101_single_result_;
     size_t new_capacity;
     char **new_values;
+    void  *new_storage;
 
     if(arguments->count + 1U < arguments->capacity)
     {
@@ -66,7 +73,8 @@ static bool tool_argv_reserve(const struct p101_env *env, struct p101_error *err
         p101_single_result_ = false;
         goto p101_single_exit_;
     }
-    new_values = (char **)p101_realloc(env, err, (void *)arguments->values, new_capacity * sizeof(*arguments->values));
+    new_storage = p101_realloc(env, err, (void *)arguments->values, new_capacity * sizeof(*arguments->values));
+    new_values  = (char **)new_storage;
     if(new_values == NULL)
     {
         p101_single_result_ = false;
@@ -86,19 +94,23 @@ bool p101_tool_argv_append(const struct p101_env *env, struct p101_error *err, s
     bool   p101_single_result_;
     char  *copy;
     bool   result;
+    bool   reserved;
     size_t length;
+    void  *storage;
 
     P101_TRACE_SCOPE(env);
     P101_WRAPPER_FAULT_SCOPE_RETURN(env, err, result, false);
-    length = p101_strlen(env, value);
-    copy   = (char *)p101_malloc(env, err, length + 1U);
+    length  = p101_strlen(env, value);
+    storage = p101_malloc(env, err, length + 1U);
+    copy    = (char *)storage;
     if(copy == NULL)
     {
         p101_single_result_ = false;
         goto p101_single_exit_;
     }
     p101_memcpy(env, copy, value, length + 1U);
-    if(!tool_argv_reserve(env, err, arguments))
+    reserved = tool_argv_reserve(env, err, arguments);
+    if(!reserved)
     {
         p101_free(env, copy);
         p101_single_result_ = false;
@@ -121,8 +133,10 @@ bool p101_tool_argv_append_prefixed(const struct p101_env *env, struct p101_erro
     bool   p101_single_result_;
     char  *copy;
     bool   result;
+    bool   reserved;
     size_t prefix_length;
     size_t value_length;
+    void  *storage;
 
     P101_TRACE_SCOPE(env);
     P101_WRAPPER_FAULT_SCOPE_RETURN(env, err, result, false);
@@ -134,7 +148,8 @@ bool p101_tool_argv_append_prefixed(const struct p101_env *env, struct p101_erro
         p101_single_result_ = false;
         goto p101_single_exit_;
     }
-    copy = (char *)p101_malloc(env, err, prefix_length + value_length + 1U);
+    storage = p101_malloc(env, err, prefix_length + value_length + 1U);
+    copy    = (char *)storage;
     if(copy == NULL)
     {
         p101_single_result_ = false;
@@ -142,7 +157,8 @@ bool p101_tool_argv_append_prefixed(const struct p101_env *env, struct p101_erro
     }
     p101_memcpy(env, copy, prefix, prefix_length);
     p101_memcpy(env, copy + prefix_length, value, value_length + 1U);
-    if(!tool_argv_reserve(env, err, arguments))
+    reserved = tool_argv_reserve(env, err, arguments);
+    if(!reserved)
     {
         p101_free(env, copy);
         p101_single_result_ = false;
@@ -179,22 +195,26 @@ int p101_tool_run_capture(const struct p101_env *env, struct p101_error *err, ch
     const char *diagnostic_name;
     int         status;
     pid_t       pid;
+    bool        error_present;
 
     P101_TRACE_SCOPE(env);
     P101_WRAPPER_FAULT_SCOPE_RETURN(env, err, status, -1);
     status          = 0;
     diagnostic_name = (options->diagnostic_name == NULL) ? "p101 tool" : options->diagnostic_name;
     p101_fflush(env, err, stdout);
-    if(p101_error_has_no_error(err))
+    error_present = p101_error_has_error(err);
+    if(!error_present)
     {
         p101_fflush(env, err, stderr);
     }
-    if(p101_error_has_error(err))
+    error_present = p101_error_has_error(err);
+    if(error_present)
     {
         goto done;
     }
-    pid = p101_fork(env, err);
-    if(p101_error_has_error(err))
+    pid           = p101_fork(env, err);
+    error_present = p101_error_has_error(err);
+    if(error_present)
     {
         goto done;
     }
@@ -215,6 +235,8 @@ static _Noreturn void p101_tool_run_child_main(const struct p101_env *env, struc
 {
     char        message[P101_TOOL_RUN_MESSAGE_LEN];
     const char *operation_name;
+    const char *error_message;
+    bool        error_present;
 
     operation_name = "child setup";
     p101_tool_run_redirect(env, err, options->stdout_path, options->stderr_path, options->output_mode);
@@ -222,12 +244,14 @@ static _Noreturn void p101_tool_run_child_main(const struct p101_env *env, struc
     {
         options->child_setup(env, err, options->child_setup_context);
     }
-    if(p101_error_has_no_error(err))
+    error_present = p101_error_has_error(err);
+    if(!error_present)
     {
         operation_name = "exec";
         p101_execvp(env, err, argv[0], argv);
     }
-    p101_strncpy(env, message, p101_error_get_message(err), sizeof(message) - 1U);
+    error_message = p101_error_get_message(err);
+    p101_strncpy(env, message, error_message, sizeof(message) - 1U);
     message[sizeof(message) - 1U] = '\0';
     p101_error_reset(err);
     p101_fprintf(env, err, stderr, "%s: %s failed: %s\n", diagnostic_name, operation_name, message);
@@ -243,19 +267,22 @@ static _Noreturn void p101_tool_run_child_main(const struct p101_env *env, struc
 
 void p101_tool_run_redirect(const struct p101_env *env, struct p101_error *err, const char *stdout_path, const char *stderr_path, mode_t output_mode)
 {
-    int stdout_fd;
-    int stderr_fd;
+    int  stdout_fd;
+    int  stderr_fd;
+    bool error_present;
 
     P101_TRACE_SCOPE(env);
     P101_WRAPPER_FAULT_SCOPE_RETURN_VOID(env, err);
-    stdout_fd = p101_open(env, err, stdout_path, O_WRONLY | O_CREAT | O_TRUNC, output_mode);
-    if(p101_error_has_error(err))
+    stdout_fd     = p101_open(env, err, stdout_path, O_WRONLY | O_CREAT | O_TRUNC, output_mode);
+    error_present = p101_error_has_error(err);
+    if(error_present)
     {
         goto done;
     }
 
-    stderr_fd = p101_open(env, err, stderr_path, O_WRONLY | O_CREAT | O_TRUNC, output_mode);
-    if(p101_error_has_error(err))
+    stderr_fd     = p101_open(env, err, stderr_path, O_WRONLY | O_CREAT | O_TRUNC, output_mode);
+    error_present = p101_error_has_error(err);
+    if(error_present)
     {
         p101_close(env, err, stdout_fd);
         goto done;
@@ -277,6 +304,10 @@ bool p101_tool_read_pipe_open(const struct p101_env *env, struct p101_error *err
     pid_t                      pid;
     posix_spawn_file_actions_t file_actions;
     bool                       result;
+    bool                       error_present;
+    char                     **environment;
+    int                        destroy_status;
+    pid_t                      waited_pid;
 
     P101_TRACE_SCOPE(env);
     P101_WRAPPER_FAULT_SCOPE_RETURN(env, err, result, false);
@@ -284,16 +315,18 @@ bool p101_tool_read_pipe_open(const struct p101_env *env, struct p101_error *err
     pipe_state->stream = NULL;
     pipe_state->pid    = -1;
     p101_pipe(env, err, descriptors);
-    if(p101_error_has_error(err))
+    error_present = p101_error_has_error(err);
+    if(error_present)
     {
         p101_single_result_ = false;
         goto p101_single_exit_;
     }
     p101_posix_spawn_file_actions_init(env, err, &file_actions);
-    if(p101_error_has_error(err))
+    error_present = p101_error_has_error(err);
+    if(error_present)
     {
-        p101_close(env, NULL, descriptors[0]);    // P101_ERROR_CONTRACT_ALLOW_NO_ERROR: cleanup preserves the fork failure.
-        p101_close(env, NULL, descriptors[1]);    // P101_ERROR_CONTRACT_ALLOW_NO_ERROR: cleanup preserves the fork failure.
+        p101_close(env, P101_ERROR_OPTIONAL, descriptors[0]);    // P101_ERROR_OPTIONAL rationale: cleanup preserves the fork failure.
+        p101_close(env, P101_ERROR_OPTIONAL, descriptors[1]);    // P101_ERROR_OPTIONAL rationale: cleanup preserves the fork failure.
         p101_single_result_ = false;
         goto p101_single_exit_;
     }
@@ -310,36 +343,44 @@ bool p101_tool_read_pipe_open(const struct p101_env *env, struct p101_error *err
     {
         p101_posix_spawn_file_actions_addclose(env, err, &file_actions, descriptors[1]);
     }
-    if(p101_error_has_error(err))
+    error_present = p101_error_has_error(err);
+    if(error_present)
     {
-        (void)p101_posix_spawn_file_actions_destroy(env, NULL, &file_actions);    // P101_ERROR_CONTRACT_ALLOW_NO_ERROR: cleanup preserves the file-action failure.
-        p101_close(env, NULL, descriptors[0]);                                    // P101_ERROR_CONTRACT_ALLOW_NO_ERROR: cleanup preserves the close failure.
-        p101_close(env, NULL, descriptors[1]);                                    // P101_ERROR_CONTRACT_ALLOW_NO_ERROR: cleanup preserves the file-action failure.
+        destroy_status = p101_posix_spawn_file_actions_destroy(env, P101_ERROR_OPTIONAL, &file_actions);    // P101_ERROR_OPTIONAL rationale: cleanup preserves the file-action failure.
+        (void)destroy_status;
+        p101_close(env, P101_ERROR_OPTIONAL, descriptors[0]);    // P101_ERROR_OPTIONAL rationale: cleanup preserves the close failure.
+        p101_close(env, P101_ERROR_OPTIONAL, descriptors[1]);    // P101_ERROR_OPTIONAL rationale: cleanup preserves the file-action failure.
         p101_single_result_ = false;
         goto p101_single_exit_;
     }
-    p101_posix_spawnp(env, err, &pid, argv[0], &file_actions, NULL, argv, tool_environment());
-    (void)p101_posix_spawn_file_actions_destroy(env, NULL, &file_actions);    // P101_ERROR_CONTRACT_ALLOW_NO_ERROR: the spawn result is authoritative.
-    if(p101_error_has_error(err))
+    environment = tool_environment();
+    p101_posix_spawnp(env, err, &pid, argv[0], &file_actions, NULL, argv, environment);
+    destroy_status = p101_posix_spawn_file_actions_destroy(env, P101_ERROR_OPTIONAL, &file_actions);    // P101_ERROR_OPTIONAL rationale: the spawn result is authoritative.
+    (void)destroy_status;
+    error_present = p101_error_has_error(err);
+    if(error_present)
     {
-        p101_close(env, NULL, descriptors[0]);    // P101_ERROR_CONTRACT_ALLOW_NO_ERROR: cleanup preserves the spawn failure.
-        p101_close(env, NULL, descriptors[1]);    // P101_ERROR_CONTRACT_ALLOW_NO_ERROR: cleanup preserves the spawn failure.
+        p101_close(env, P101_ERROR_OPTIONAL, descriptors[0]);    // P101_ERROR_OPTIONAL rationale: cleanup preserves the spawn failure.
+        p101_close(env, P101_ERROR_OPTIONAL, descriptors[1]);    // P101_ERROR_OPTIONAL rationale: cleanup preserves the spawn failure.
         p101_single_result_ = false;
         goto p101_single_exit_;
     }
     p101_close(env, err, descriptors[1]);
-    if(p101_error_has_error(err))
+    error_present = p101_error_has_error(err);
+    if(error_present)
     {
-        p101_close(env, NULL, descriptors[0]);          // P101_ERROR_CONTRACT_ALLOW_NO_ERROR: cleanup preserves the close failure.
-        (void)p101_waitpid(env, NULL, pid, NULL, 0);    // P101_ERROR_CONTRACT_ALLOW_NO_ERROR: cleanup preserves the close failure.
+        p101_close(env, P101_ERROR_OPTIONAL, descriptors[0]);                 // P101_ERROR_OPTIONAL rationale: cleanup preserves the close failure.
+        waited_pid = p101_waitpid(env, P101_ERROR_OPTIONAL, pid, NULL, 0);    // P101_ERROR_OPTIONAL rationale: cleanup preserves the close failure.
+        (void)waited_pid;
         p101_single_result_ = false;
         goto p101_single_exit_;
     }
     pipe_state->stream = p101_fdopen(env, err, descriptors[0], "r");
     if(pipe_state->stream == NULL)
     {
-        p101_close(env, NULL, descriptors[0]);          // P101_ERROR_CONTRACT_ALLOW_NO_ERROR: cleanup preserves the fdopen failure.
-        (void)p101_waitpid(env, NULL, pid, NULL, 0);    // P101_ERROR_CONTRACT_ALLOW_NO_ERROR: cleanup preserves the fdopen failure.
+        p101_close(env, P101_ERROR_OPTIONAL, descriptors[0]);                 // P101_ERROR_OPTIONAL rationale: cleanup preserves the fdopen failure.
+        waited_pid = p101_waitpid(env, P101_ERROR_OPTIONAL, pid, NULL, 0);    // P101_ERROR_OPTIONAL rationale: cleanup preserves the fdopen failure.
+        (void)waited_pid;
         p101_single_result_ = false;
         goto p101_single_exit_;
     }
@@ -356,7 +397,9 @@ p101_single_exit_:
 
 int p101_tool_read_pipe_close(const struct p101_env *env, struct p101_error *err, struct p101_tool_read_pipe *pipe_state)
 {
-    int status;
+    int   status;
+    bool  error_present;
+    pid_t waited_pid;
 
     P101_TRACE_SCOPE(env);
     P101_WRAPPER_FAULT_SCOPE_RETURN(env, err, status, -1);
@@ -374,12 +417,14 @@ int p101_tool_read_pipe_close(const struct p101_env *env, struct p101_error *err
          * Always reap the child, but do not overwrite a stream-close error
          * with a later wait failure.
          */
-        wait_error = err;
-        if(p101_error_has_error(err))
+        wait_error    = err;
+        error_present = p101_error_has_error(err);
+        if(error_present)
         {
             wait_error = NULL;
         }
-        (void)p101_waitpid(env, wait_error, pipe_state->pid, &status, 0);
+        waited_pid = p101_waitpid(env, wait_error, pipe_state->pid, &status, 0);
+        (void)waited_pid;
         pipe_state->pid = -1;
     }
     P101_WRAPPER_SCOPE_DONE();

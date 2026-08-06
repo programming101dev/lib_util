@@ -1,25 +1,25 @@
-function	current_source
-p101_be16toh	libraries/lib_util/src/endian.c
-p101_be32toh	libraries/lib_util/src/endian.c
-p101_be64toh	libraries/lib_util/src/endian.c
-p101_bswap16	libraries/lib_util/src/endian.c
-p101_bswap32	libraries/lib_util/src/endian.c
-p101_bswap64	libraries/lib_util/src/endian.c
-p101_htobe16	libraries/lib_util/src/endian.c
-p101_htobe32	libraries/lib_util/src/endian.c
-p101_htobe64	libraries/lib_util/src/endian.c
-p101_htole16	libraries/lib_util/src/endian.c
-p101_htole32	libraries/lib_util/src/endian.c
-p101_htole64	libraries/lib_util/src/endian.c
-p101_is_little_endian	libraries/lib_util/src/endian.c
-p101_le16toh	libraries/lib_util/src/endian.c
-p101_le32toh	libraries/lib_util/src/endian.c
-p101_le64toh	libraries/lib_util/src/endian.c
-p101_tool_run_capture	libraries/lib_util/src/tool_run.c
-p101_tool_run_redirect	libraries/lib_util/src/tool_run.c
-p101_tool_argv_init	libraries/lib_util/src/tool_run.c
-p101_tool_argv_append	libraries/lib_util/src/tool_run.c
-p101_tool_argv_append_prefixed	libraries/lib_util/src/tool_run.c
-p101_tool_argv_destroy	libraries/lib_util/src/tool_run.c
-p101_tool_read_pipe_open	libraries/lib_util/src/tool_run.c
-p101_tool_read_pipe_close	libraries/lib_util/src/tool_run.c
+function	function_usr	current_source	native_function	native_function_usr
+p101_be16toh	c:@F@p101_be16toh	libraries/lib_util/src/endian.c	-	-
+p101_be32toh	c:@F@p101_be32toh	libraries/lib_util/src/endian.c	-	-
+p101_be64toh	c:@F@p101_be64toh	libraries/lib_util/src/endian.c	-	-
+p101_bswap16	c:@F@p101_bswap16	libraries/lib_util/src/endian.c	-	-
+p101_bswap32	c:@F@p101_bswap32	libraries/lib_util/src/endian.c	-	-
+p101_bswap64	c:@F@p101_bswap64	libraries/lib_util/src/endian.c	-	-
+p101_htobe16	c:@F@p101_htobe16	libraries/lib_util/src/endian.c	-	-
+p101_htobe32	c:@F@p101_htobe32	libraries/lib_util/src/endian.c	-	-
+p101_htobe64	c:@F@p101_htobe64	libraries/lib_util/src/endian.c	-	-
+p101_htole16	c:@F@p101_htole16	libraries/lib_util/src/endian.c	-	-
+p101_htole32	c:@F@p101_htole32	libraries/lib_util/src/endian.c	-	-
+p101_htole64	c:@F@p101_htole64	libraries/lib_util/src/endian.c	-	-
+p101_is_little_endian	c:@F@p101_is_little_endian	libraries/lib_util/src/endian.c	-	-
+p101_le16toh	c:@F@p101_le16toh	libraries/lib_util/src/endian.c	-	-
+p101_le32toh	c:@F@p101_le32toh	libraries/lib_util/src/endian.c	-	-
+p101_le64toh	c:@F@p101_le64toh	libraries/lib_util/src/endian.c	-	-
+p101_tool_run_capture	c:@F@p101_tool_run_capture	libraries/lib_util/src/tool_run.c	-	-
+p101_tool_run_redirect	c:@F@p101_tool_run_redirect	libraries/lib_util/src/tool_run.c	-	-
+p101_tool_argv_init	c:@F@p101_tool_argv_init	libraries/lib_util/src/tool_run.c	-	-
+p101_tool_argv_append	c:@F@p101_tool_argv_append	libraries/lib_util/src/tool_run.c	-	-
+p101_tool_argv_append_prefixed	c:@F@p101_tool_argv_append_prefixed	libraries/lib_util/src/tool_run.c	-	-
+p101_tool_argv_destroy	c:@F@p101_tool_argv_destroy	libraries/lib_util/src/tool_run.c	-	-
+p101_tool_read_pipe_open	c:@F@p101_tool_read_pipe_open	libraries/lib_util/src/tool_run.c	-	-
+p101_tool_read_pipe_close	c:@F@p101_tool_read_pipe_close	libraries/lib_util/src/tool_run.c	-	-

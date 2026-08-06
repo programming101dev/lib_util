@@ -1,25 +1,25 @@
-function	test_kind	test_source
-p101_tool_argv_append	fault	test/test_fault_wrappers.c
-p101_tool_argv_append_prefixed	fault	test/test_fault_wrappers.c
-p101_tool_read_pipe_close	fault	test/test_fault_wrappers.c
-p101_tool_read_pipe_open	fault	test/test_fault_wrappers.c
-p101_tool_run_capture	fault	test/test_fault_wrappers.c
-p101_tool_run_redirect	fault	test/test_fault_wrappers.c
-p101_be16toh	behavior-existing	test/test_lib_util.c
-p101_be32toh	behavior-existing	test/test_lib_util.c
-p101_be64toh	behavior-existing	test/test_lib_util.c
-p101_bswap16	behavior-existing	test/test_lib_util.c
-p101_bswap32	behavior-existing	test/test_lib_util.c
-p101_bswap64	behavior-existing	test/test_lib_util.c
-p101_htobe16	behavior-existing	test/test_lib_util.c
-p101_htobe32	behavior-existing	test/test_lib_util.c
-p101_htobe64	behavior-existing	test/test_lib_util.c
-p101_htole16	behavior-existing	test/test_lib_util.c
-p101_htole32	behavior-existing	test/test_lib_util.c
-p101_htole64	behavior-existing	test/test_lib_util.c
-p101_is_little_endian	behavior-existing	test/test_lib_util.c
-p101_le16toh	behavior-existing	test/test_lib_util.c
-p101_le32toh	behavior-existing	test/test_lib_util.c
-p101_le64toh	behavior-existing	test/test_lib_util.c
-p101_tool_argv_destroy	behavior-existing	test/test_lib_util.c
-p101_tool_argv_init	behavior-existing	test/test_lib_util.c
+function	function_usr	test_kind	test_source
+p101_tool_argv_append	c:@F@p101_tool_argv_append	fault	test/test_fault_wrappers.c
+p101_tool_argv_append_prefixed	c:@F@p101_tool_argv_append_prefixed	fault	test/test_fault_wrappers.c
+p101_tool_read_pipe_close	c:@F@p101_tool_read_pipe_close	fault	test/test_fault_wrappers.c
+p101_tool_read_pipe_open	c:@F@p101_tool_read_pipe_open	fault	test/test_fault_wrappers.c
+p101_tool_run_capture	c:@F@p101_tool_run_capture	fault	test/test_fault_wrappers.c
+p101_tool_run_redirect	c:@F@p101_tool_run_redirect	fault	test/test_fault_wrappers.c
+p101_be16toh	c:@F@p101_be16toh	behavior-existing	test/test_lib_util.c
+p101_be32toh	c:@F@p101_be32toh	behavior-existing	test/test_lib_util.c
+p101_be64toh	c:@F@p101_be64toh	behavior-existing	test/test_lib_util.c
+p101_bswap16	c:@F@p101_bswap16	behavior-existing	test/test_lib_util.c
+p101_bswap32	c:@F@p101_bswap32	behavior-existing	test/test_lib_util.c
+p101_bswap64	c:@F@p101_bswap64	behavior-existing	test/test_lib_util.c
+p101_htobe16	c:@F@p101_htobe16	behavior-existing	test/test_lib_util.c
+p101_htobe32	c:@F@p101_htobe32	behavior-existing	test/test_lib_util.c
+p101_htobe64	c:@F@p101_htobe64	behavior-existing	test/test_lib_util.c
+p101_htole16	c:@F@p101_htole16	behavior-existing	test/test_lib_util.c
+p101_htole32	c:@F@p101_htole32	behavior-existing	test/test_lib_util.c
+p101_htole64	c:@F@p101_htole64	behavior-existing	test/test_lib_util.c
+p101_is_little_endian	c:@F@p101_is_little_endian	behavior-existing	test/test_lib_util.c
+p101_le16toh	c:@F@p101_le16toh	behavior-existing	test/test_lib_util.c
+p101_le32toh	c:@F@p101_le32toh	behavior-existing	test/test_lib_util.c
+p101_le64toh	c:@F@p101_le64toh	behavior-existing	test/test_lib_util.c
+p101_tool_argv_destroy	c:@F@p101_tool_argv_destroy	behavior-existing	test/test_lib_util.c
+p101_tool_argv_init	c:@F@p101_tool_argv_init	behavior-existing	test/test_lib_util.c

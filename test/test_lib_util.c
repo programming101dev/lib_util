@@ -97,6 +97,12 @@ static void test_conversions(const struct p101_env *env)
     EXPECT(once == (uint16_t)(value16 + 1U));
 }
 
+P101_ATTR_SEMANTIC_ROLE("p101:boundary-case:boundary:subprocess-execution:clean")
+P101_ATTR_SEMANTIC_ROLE("p101:boundary-case:boundary:subprocess-execution:typed_refusal")
+P101_ATTR_SEMANTIC_ROLE("p101:boundary-case:boundary:subprocess-execution:binding_swap")
+P101_ATTR_SEMANTIC_ROLE("p101:boundary-case:boundary:subprocess-execution:identity_mismatch")
+P101_ATTR_SEMANTIC_ROLE("p101:boundary-case:boundary:subprocess-execution:resource_limit")
+
 static void test_tool_run(const struct p101_env *env, struct p101_error *err)
 {
     struct p101_tool_argv        arguments;
