@@ -72,11 +72,12 @@ endif()
 set(P101_TEST_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/../include" ${P101_PUBLIC_INCLUDE_DIRS_LIST})
 set(P101_TEST_LIBRARIES "${P101_UTIL_LIBRARY}" "${P101_ENV_LIBRARY}" "${P101_ERROR_LIBRARY}")
 
+include(${CMAKE_CURRENT_SOURCE_DIR}/fault_shards.cmake)
 set(P101_C_TESTS
         test_lib_util
         test_native_first
         test_p101_first
-        test_fault_wrappers
+        ${P101_FAULT_SHARD_TESTS}
 )
 
 foreach(target IN LISTS P101_C_TESTS)
