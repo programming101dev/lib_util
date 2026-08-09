@@ -17,6 +17,7 @@
  * limitations under the License.
  */
 
+#include <stdbool.h>
 #include <stdint.h>
 
 #ifdef __cplusplus
@@ -44,7 +45,7 @@ extern "C"
     uint32_t p101_htobe32(const struct p101_env *env, uint32_t value);
     uint64_t p101_htobe64(const struct p101_env *env, uint64_t value);
 
-    int p101_is_little_endian(const struct p101_env *env);
+    bool p101_is_little_endian(const struct p101_env *env);
 
 #ifdef __cplusplus
 }

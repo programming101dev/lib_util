@@ -2,6 +2,7 @@
 #include <p101_error/error.h>
 #include <p101_util/endian.h>
 #include <p101_util/tool_run.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -51,13 +52,20 @@ static void observe_calls(const struct p101_env *env, p101_env_call_event event,
     }
 }
 
-static int native_is_little_endian(void)
+static bool native_is_little_endian(void)
 {
     const uint16_t value = UINT16_C(0x0102);
     const uint8_t *bytes;
+    bool           little_endian;
 
-    bytes = (const uint8_t *)&value;
-    return bytes[0] == UINT8_C(0x02);
+    bytes         = (const uint8_t *)&value;
+    little_endian = false;
+    if(bytes[0] == UINT8_C(0x02))
+    {
+        little_endian = true;
+    }
+
+    return little_endian;
 }
 
 static void test_byte_swaps(const struct p101_env *env)

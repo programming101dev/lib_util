@@ -346,20 +346,20 @@ uint64_t p101_htobe64(const struct p101_env *env, uint64_t value)
     return ret_val;
 }
 
-int p101_is_little_endian(const struct p101_env *env)
+bool p101_is_little_endian(const struct p101_env *env)
 {
     bool little_endian;
-    int  ret_val;
+    bool ret_val;
 
     P101_TRACE(env);
     little_endian = is_little_endian_value();
     if(little_endian)
     {
-        ret_val = 1;
+        ret_val = true;
     }
     else
     {
-        ret_val = 0;
+        ret_val = false;
     }
     P101_TRACE_EXIT(env);
 

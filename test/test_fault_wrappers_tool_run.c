@@ -58,7 +58,10 @@ static int    native_child_status = EXIT_SUCCESS;
 #define P101_NATIVE_CLEANUP_ERRNO(expression)                                                                                                                                                                                                                      \
     do                                                                                                                                                                                                                                                             \
     {                                                                                                                                                                                                                                                              \
-        if((expression) != 0)                                                                                                                                                                                                                                      \
+        int p101_cleanup_status_;                                                                                                                                                                                                                                  \
+                                                                                                                                                                                                                                                                   \
+        p101_cleanup_status_ = (expression);                                                                                                                                                                                                                       \
+        if(p101_cleanup_status_ != 0)                                                                                                                                                                                                                              \
         {                                                                                                                                                                                                                                                          \
             fprintf(stderr, "native cleanup failed: %s: %s\n", #expression, strerror(errno));                                                                                                                                                                      \
             native_passed = false;                                                                                                                                                                                                                                 \
@@ -76,6 +79,31 @@ static int    native_child_status = EXIT_SUCCESS;
         }                                                                                                                                                                                                                                                          \
     } while(0)
 
+static bool native_unlink_if_present(const char *path)
+{
+    bool        result;
+    int         unlink_status;
+    int         unlink_error;
+    const char *message;
+    int         written;
+
+    errno         = 0;
+    unlink_status = unlink(path);
+    unlink_error  = errno;
+    if(unlink_status != 0 && unlink_error != ENOENT)
+    {
+        message = strerror(unlink_error);
+        written = fprintf(stderr, "native cleanup failed: unlink(%s): %s\n", path, message);
+        (void)written;
+        result = false;
+    }
+    else
+    {
+        result = true;
+    }
+    return result;
+}
+
 #define P101_NATIVE_CLEANUP_UNLINK_IF_PRESENT(path)                                                                                                                                                                                                                \
     do                                                                                                                                                                                                                                                             \
     {                                                                                                                                                                                                                                                              \
@@ -87,6 +115,18 @@ static int    native_child_status = EXIT_SUCCESS;
             native_passed = false;                                                                                                                                                                                                                                 \
         }                                                                                                                                                                                                                                                          \
     } while(0)
+
+static bool native_format_pid_path(char *buffer, size_t buffer_size, const char *format)
+{
+    bool  result;
+    int   format_length;
+    pid_t process_id;
+
+    process_id    = getpid();
+    format_length = snprintf(buffer, buffer_size, format, (long)process_id);
+    result        = format_length >= 0 && (size_t)format_length < buffer_size;
+    return result;
+}
 
 #define P101_NATIVE_FORMAT_PID_PATH_OR_SKIP(buffer, format)                                                                                                                                                                                                        \
     do                                                                                                                                                                                                                                                             \
@@ -263,8 +303,21 @@ static void test_p101_tool_argv_append(struct p101_env *env, struct p101_error *
             (void)native_result;
             if(p101_error_has_error(native_err))
             {
-                fprintf(stderr, "native smoke failed: p101_tool_argv_append: %s\n", p101_error_get_message(native_err));
-                native_passed = false;
+                bool native_error_declared = false;
+
+                for(size_t native_error_index = 0U; native_error_index < sizeof(errors) / sizeof(errors[0]); native_error_index++)
+                {
+                    if(p101_error_is_errno(native_err, errors[native_error_index]))
+                    {
+                        native_error_declared = true;
+                    }
+                }
+                if(!native_error_declared)
+                {
+                    fprintf(stderr, "native smoke produced an undeclared platform failure: p101_tool_argv_append: %s\n", p101_error_get_message(native_err));
+                    native_passed = false;
+                }
+                p101_error_reset(native_err);
             }
             native_child_status = native_passed ? EXIT_SUCCESS : EXIT_FAILURE;
         native_child_done_:
@@ -279,7 +332,11 @@ static void test_p101_tool_argv_append(struct p101_env *env, struct p101_error *
                 fprintf(stderr, "native smoke terminated by signal: p101_tool_argv_append: %d\n", WTERMSIG(native_status));
             }
             EXPECT(WIFEXITED(native_status));
-            if(WIFEXITED(native_status))
+            if(WIFEXITED(native_status) && WEXITSTATUS(native_status) == 77)
+            {
+                fprintf(stderr, "native smoke fixture unavailable: p101_tool_argv_append\n");
+            }
+            else if(WIFEXITED(native_status))
             {
                 if(WEXITSTATUS(native_status) != EXIT_SUCCESS)
                 {
@@ -367,8 +424,21 @@ static void test_p101_tool_argv_append_prefixed(struct p101_env *env, struct p10
             (void)native_result;
             if(p101_error_has_error(native_err))
             {
-                fprintf(stderr, "native smoke failed: p101_tool_argv_append_prefixed: %s\n", p101_error_get_message(native_err));
-                native_passed = false;
+                bool native_error_declared = false;
+
+                for(size_t native_error_index = 0U; native_error_index < sizeof(errors) / sizeof(errors[0]); native_error_index++)
+                {
+                    if(p101_error_is_errno(native_err, errors[native_error_index]))
+                    {
+                        native_error_declared = true;
+                    }
+                }
+                if(!native_error_declared)
+                {
+                    fprintf(stderr, "native smoke produced an undeclared platform failure: p101_tool_argv_append_prefixed: %s\n", p101_error_get_message(native_err));
+                    native_passed = false;
+                }
+                p101_error_reset(native_err);
             }
             native_child_status = native_passed ? EXIT_SUCCESS : EXIT_FAILURE;
         native_child_done_:
@@ -383,7 +453,11 @@ static void test_p101_tool_argv_append_prefixed(struct p101_env *env, struct p10
                 fprintf(stderr, "native smoke terminated by signal: p101_tool_argv_append_prefixed: %d\n", WTERMSIG(native_status));
             }
             EXPECT(WIFEXITED(native_status));
-            if(WIFEXITED(native_status))
+            if(WIFEXITED(native_status) && WEXITSTATUS(native_status) == 77)
+            {
+                fprintf(stderr, "native smoke fixture unavailable: p101_tool_argv_append_prefixed\n");
+            }
+            else if(WIFEXITED(native_status))
             {
                 if(WEXITSTATUS(native_status) != EXIT_SUCCESS)
                 {
@@ -466,13 +540,39 @@ static void test_p101_tool_read_pipe_close(struct p101_env *env, struct p101_err
                 native_child_status = 77;
                 goto native_child_done_;
             }
-            struct p101_tool_read_pipe native_argument_2 = {0};
-            int                        native_result     = p101_tool_read_pipe_close(native_env, native_err, &native_argument_2);
+            struct p101_tool_read_pipe native_argument_2         = {NULL, -1};
+            char                      *native_argument_2_argv[4] = {
+                (char *)"/bin/sh",
+                (char *)"-c",
+                (char *)"true",
+                NULL,
+            };
+            bool native_argument_2_opened;
+            native_argument_2_opened = p101_tool_read_pipe_open(native_env, native_err, native_argument_2_argv, "native pipe", false, &native_argument_2);
+            if(!native_argument_2_opened)
+            {
+                native_child_status = 77;
+                goto native_child_done_;
+            }
+            int native_result = p101_tool_read_pipe_close(native_env, native_err, &native_argument_2);
             (void)native_result;
             if(p101_error_has_error(native_err))
             {
-                fprintf(stderr, "native smoke failed: p101_tool_read_pipe_close: %s\n", p101_error_get_message(native_err));
-                native_passed = false;
+                bool native_error_declared = false;
+
+                for(size_t native_error_index = 0U; native_error_index < sizeof(errors) / sizeof(errors[0]); native_error_index++)
+                {
+                    if(p101_error_is_errno(native_err, errors[native_error_index]))
+                    {
+                        native_error_declared = true;
+                    }
+                }
+                if(!native_error_declared)
+                {
+                    fprintf(stderr, "native smoke produced an undeclared platform failure: p101_tool_read_pipe_close: %s\n", p101_error_get_message(native_err));
+                    native_passed = false;
+                }
+                p101_error_reset(native_err);
             }
             native_child_status = native_passed ? EXIT_SUCCESS : EXIT_FAILURE;
         native_child_done_:
@@ -487,7 +587,11 @@ static void test_p101_tool_read_pipe_close(struct p101_env *env, struct p101_err
                 fprintf(stderr, "native smoke terminated by signal: p101_tool_read_pipe_close: %d\n", WTERMSIG(native_status));
             }
             EXPECT(WIFEXITED(native_status));
-            if(WIFEXITED(native_status))
+            if(WIFEXITED(native_status) && WEXITSTATUS(native_status) == 77)
+            {
+                fprintf(stderr, "native smoke fixture unavailable: p101_tool_read_pipe_close\n");
+            }
+            else if(WIFEXITED(native_status))
             {
                 if(WEXITSTATUS(native_status) != EXIT_SUCCESS)
                 {
@@ -570,14 +674,39 @@ static void test_p101_tool_read_pipe_open(struct p101_env *env, struct p101_erro
                 native_child_status = 77;
                 goto native_child_done_;
             }
-            char                      *native_argument_2[2] = {(char *)"p101", NULL};
-            struct p101_tool_read_pipe native_argument_5    = {0};
-            bool                       native_result        = p101_tool_read_pipe_open(native_env, native_err, native_argument_2, "p101", 0, &native_argument_5);
+            char *native_argument_2[4] = {
+                (char *)"/bin/sh",
+                (char *)"-c",
+                (char *)"true",
+                NULL,
+            };
+            struct p101_tool_read_pipe native_argument_5 = {NULL, -1};
+            bool                       native_result     = p101_tool_read_pipe_open(native_env, native_err, native_argument_2, "p101", 0, &native_argument_5);
             (void)native_result;
             if(p101_error_has_error(native_err))
             {
-                fprintf(stderr, "native smoke failed: p101_tool_read_pipe_open: %s\n", p101_error_get_message(native_err));
-                native_passed = false;
+                bool native_error_declared = false;
+
+                for(size_t native_error_index = 0U; native_error_index < sizeof(errors) / sizeof(errors[0]); native_error_index++)
+                {
+                    if(p101_error_is_errno(native_err, errors[native_error_index]))
+                    {
+                        native_error_declared = true;
+                    }
+                }
+                if(!native_error_declared)
+                {
+                    fprintf(stderr, "native smoke produced an undeclared platform failure: p101_tool_read_pipe_open: %s\n", p101_error_get_message(native_err));
+                    native_passed = false;
+                }
+                p101_error_reset(native_err);
+            }
+            if(native_result)
+            {
+                int native_pipe_close_status;
+
+                native_pipe_close_status = p101_tool_read_pipe_close(native_env, native_err, &native_argument_5);
+                (void)native_pipe_close_status;
             }
             native_child_status = native_passed ? EXIT_SUCCESS : EXIT_FAILURE;
         native_child_done_:
@@ -592,7 +721,11 @@ static void test_p101_tool_read_pipe_open(struct p101_env *env, struct p101_erro
                 fprintf(stderr, "native smoke terminated by signal: p101_tool_read_pipe_open: %d\n", WTERMSIG(native_status));
             }
             EXPECT(WIFEXITED(native_status));
-            if(WIFEXITED(native_status))
+            if(WIFEXITED(native_status) && WEXITSTATUS(native_status) == 77)
+            {
+                fprintf(stderr, "native smoke fixture unavailable: p101_tool_read_pipe_open\n");
+            }
+            else if(WIFEXITED(native_status))
             {
                 if(WEXITSTATUS(native_status) != EXIT_SUCCESS)
                 {
@@ -681,8 +814,21 @@ static void test_p101_tool_run_capture(struct p101_env *env, struct p101_error *
             (void)native_result;
             if(p101_error_has_error(native_err))
             {
-                fprintf(stderr, "native smoke failed: p101_tool_run_capture: %s\n", p101_error_get_message(native_err));
-                native_passed = false;
+                bool native_error_declared = false;
+
+                for(size_t native_error_index = 0U; native_error_index < sizeof(errors) / sizeof(errors[0]); native_error_index++)
+                {
+                    if(p101_error_is_errno(native_err, errors[native_error_index]))
+                    {
+                        native_error_declared = true;
+                    }
+                }
+                if(!native_error_declared)
+                {
+                    fprintf(stderr, "native smoke produced an undeclared platform failure: p101_tool_run_capture: %s\n", p101_error_get_message(native_err));
+                    native_passed = false;
+                }
+                p101_error_reset(native_err);
             }
             native_child_status = native_passed ? EXIT_SUCCESS : EXIT_FAILURE;
         native_child_done_:
@@ -697,7 +843,11 @@ static void test_p101_tool_run_capture(struct p101_env *env, struct p101_error *
                 fprintf(stderr, "native smoke terminated by signal: p101_tool_run_capture: %d\n", WTERMSIG(native_status));
             }
             EXPECT(WIFEXITED(native_status));
-            if(WIFEXITED(native_status))
+            if(WIFEXITED(native_status) && WEXITSTATUS(native_status) == 77)
+            {
+                fprintf(stderr, "native smoke fixture unavailable: p101_tool_run_capture\n");
+            }
+            else if(WIFEXITED(native_status))
             {
                 if(WEXITSTATUS(native_status) != EXIT_SUCCESS)
                 {
@@ -778,12 +928,33 @@ static void test_p101_tool_run_redirect(struct p101_env *env, struct p101_error 
                 native_child_status = 77;
                 goto native_child_done_;
             }
-            p101_tool_run_redirect(native_env, native_err, "p101", "p101", 0);
+            char native_argument_2[PATH_MAX];
+            P101_NATIVE_FORMAT_PID_PATH_OR_SKIP(native_argument_2, "/tmp/p101-wrapper-stdout-%ld");
+            P101_NATIVE_CLEANUP_UNLINK_IF_PRESENT(native_argument_2);
+            char native_argument_3[PATH_MAX];
+            P101_NATIVE_FORMAT_PID_PATH_OR_SKIP(native_argument_3, "/tmp/p101-wrapper-stderr-%ld");
+            P101_NATIVE_CLEANUP_UNLINK_IF_PRESENT(native_argument_3);
+            p101_tool_run_redirect(native_env, native_err, native_argument_2, native_argument_3, 0);
             if(p101_error_has_error(native_err))
             {
-                fprintf(stderr, "native smoke failed: p101_tool_run_redirect: %s\n", p101_error_get_message(native_err));
-                native_passed = false;
+                bool native_error_declared = false;
+
+                for(size_t native_error_index = 0U; native_error_index < sizeof(errors) / sizeof(errors[0]); native_error_index++)
+                {
+                    if(p101_error_is_errno(native_err, errors[native_error_index]))
+                    {
+                        native_error_declared = true;
+                    }
+                }
+                if(!native_error_declared)
+                {
+                    fprintf(stderr, "native smoke produced an undeclared platform failure: p101_tool_run_redirect: %s\n", p101_error_get_message(native_err));
+                    native_passed = false;
+                }
+                p101_error_reset(native_err);
             }
+            P101_NATIVE_CLEANUP_UNLINK_IF_PRESENT(native_argument_2);
+            P101_NATIVE_CLEANUP_UNLINK_IF_PRESENT(native_argument_3);
             native_child_status = native_passed ? EXIT_SUCCESS : EXIT_FAILURE;
         native_child_done_:
             p101_env_destroy(native_env);
@@ -797,7 +968,11 @@ static void test_p101_tool_run_redirect(struct p101_env *env, struct p101_error 
                 fprintf(stderr, "native smoke terminated by signal: p101_tool_run_redirect: %d\n", WTERMSIG(native_status));
             }
             EXPECT(WIFEXITED(native_status));
-            if(WIFEXITED(native_status))
+            if(WIFEXITED(native_status) && WEXITSTATUS(native_status) == 77)
+            {
+                fprintf(stderr, "native smoke fixture unavailable: p101_tool_run_redirect\n");
+            }
+            else if(WIFEXITED(native_status))
             {
                 if(WEXITSTATUS(native_status) != EXIT_SUCCESS)
                 {
