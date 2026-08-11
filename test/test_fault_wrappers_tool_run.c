@@ -327,6 +327,7 @@ static void test_p101_tool_argv_append(struct p101_env *env, struct p101_error *
                 }
                 p101_error_reset(native_err);
             }
+            p101_tool_argv_destroy(native_env, &native_argument_2);
             native_child_status = native_passed ? EXIT_SUCCESS : EXIT_FAILURE;
         native_child_done_:
             p101_env_destroy(native_env);
@@ -456,6 +457,7 @@ static void test_p101_tool_argv_append_prefixed(struct p101_env *env, struct p10
                 }
                 p101_error_reset(native_err);
             }
+            p101_tool_argv_destroy(native_env, &native_argument_2);
             native_child_status = native_passed ? EXIT_SUCCESS : EXIT_FAILURE;
         native_child_done_:
             p101_env_destroy(native_env);
