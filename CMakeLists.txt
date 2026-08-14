@@ -809,10 +809,15 @@ function(_p101_target_local_include_dirs OUT TARGET_NAME)
         foreach (_p101_link_token IN LISTS ${TARGET_NAME}_LINK_LIBRARIES)
             if (_p101_link_token MATCHES "^p101_([A-Za-z0-9_]+)$")
                 set(_p101_dependency_repo "lib_${CMAKE_MATCH_1}")
-                # p101_record is a second public library owned by
-                # lib_tool_event rather than a standalone lib_record repo.
-                if (_p101_link_token STREQUAL "p101_record")
+                # Some repositories intentionally own several focused public
+                # targets. Map those targets to their repository instead of
+                # inventing one repository per narrow mechanism.
+                if (_p101_link_token STREQUAL "p101_record" OR
+                        _p101_link_token STREQUAL "p101_json" OR
+                        _p101_link_token STREQUAL "p101_tool_support")
                     set(_p101_dependency_repo "lib_tool_event")
+                elseif (_p101_link_token STREQUAL "p101_subprocess")
+                    set(_p101_dependency_repo "lib_util")
                 endif ()
                 set(_p101_dependency_include
                         "${_P101_WORKSPACE_ROOT}/libraries/${_p101_dependency_repo}/include")

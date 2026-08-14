@@ -1,5 +1,5 @@
 #include <cstdint>
-#include <p101_util/endian.h>
+#include <p101_endian/endian.h>
 
 int main()
 {

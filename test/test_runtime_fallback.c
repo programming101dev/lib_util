@@ -1,4 +1,4 @@
-#include <p101_util/endian.h>
+#include <p101_endian/endian.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>

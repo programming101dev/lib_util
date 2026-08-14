@@ -10,8 +10,8 @@
 #include <netinet/in.h>
 #include <p101_env/env.h>
 #include <p101_error/error.h>
-#include <p101_util/endian.h>
-#include <p101_util/tool_run.h>
+#include <p101_subprocess/tool_run.h>
+#include <p101_endian/endian.h>
 #include <pthread.h>
 #include <search.h>
 #include <signal.h>

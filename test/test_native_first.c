@@ -5,7 +5,7 @@
     #include <endian.h>
 #endif
 
-#include <p101_util/endian.h>
+#include <p101_endian/endian.h>
 #include <stddef.h>
 
 int main(void)

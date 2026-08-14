@@ -1,4 +1,4 @@
-#include <p101_util/endian.h>
+#include <p101_endian/endian.h>
 #include <stddef.h>
 
 #if defined(__APPLE__) || defined(__FreeBSD__)
